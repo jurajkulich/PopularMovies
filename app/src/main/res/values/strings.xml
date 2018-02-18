@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">PopularMovies</string>
+
+
+    <string-array name="movies">
+        <item>Top Rated</item>
+        <item>Popular</item>
+    </string-array>
+
+    <string name="relase_date_placeholder">Relase date</string>
 </resources>
