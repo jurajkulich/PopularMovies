@@ -15,6 +15,7 @@ import okhttp3.Response;
 
 public class NetworkUtils {
 
+    // You can get API KEY on https://www.themoviedb.org/
     private static final String KEY = "";
     private static final String SCHEME = "https";
     private static final String BASIC_URL = "api.themoviedb.org";
