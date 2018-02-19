@@ -39,6 +39,7 @@ public class MoviePostersAdapter extends RecyclerView.Adapter<MoviePostersAdapte
             Movie movie = movies.get(pos);
             Intent intent = new Intent(view.getContext(), MovieDetailsActivity.class);
             Bundle bundle = new Bundle();
+            bundle.putString("id", movie.getId());
             bundle.putString("title",movie.getTitle());
             bundle.putString("description",movie.getSynopsis());
             bundle.putString("poster", movie.getImage());

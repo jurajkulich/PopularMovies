@@ -12,8 +12,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 
-import com.example.android.popularmovies.NetworkUtils.NetworkUtils;
-import com.example.android.popularmovies.jsonUtils.JsonUtils;
+import com.example.android.popularmovies.networkutils.NetworkUtils;
+import com.example.android.popularmovies.jsonutils.JsonUtils;
 import com.example.android.popularmovies.model.Movie;
 
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.example.android.popularmovies.NetworkUtils;
+package com.example.android.popularmovies.networkutils;
 
 import android.net.Uri;
 import java.io.IOException;
@@ -15,7 +15,6 @@ import okhttp3.Response;
 
 public class NetworkUtils {
 
-    // You can get API KEY on https://www.themoviedb.org/
     private static final String KEY = "";
     private static final String SCHEME = "https";
     private static final String BASIC_URL = "api.themoviedb.org";
@@ -24,6 +23,7 @@ public class NetworkUtils {
     private static final String PARAM_KEY_URL = "api_key";
     private static final String TOP_RATED_URL = "top_rated";
     private static final String POPURAL_URL = "popular";
+    private static final String REVIEWS = "reviews";
 
     public URL getTopRatedUrl() {
         URL url = null;
@@ -50,6 +50,24 @@ public class NetworkUtils {
                 .appendPath(PATH)
                 .appendPath(MOVIE_PATH)
                 .appendPath(POPURAL_URL)
+                .appendQueryParameter(PARAM_KEY_URL, KEY);
+        try {
+            url = new URL(builder.build().toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
+
+    public static URL getRatingsUrl(String id) {
+        URL url = null;
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme(SCHEME)
+                .authority(BASIC_URL)
+                .appendPath(PATH)
+                .appendPath(MOVIE_PATH)
+                .appendPath(id)
+                .appendPath(REVIEWS)
                 .appendQueryParameter(PARAM_KEY_URL, KEY);
         try {
             url = new URL(builder.build().toString());
