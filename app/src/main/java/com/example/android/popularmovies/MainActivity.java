@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
             URL url = urls[0];
             String searchResult = null;
             try {
-                searchResult = NetworkUtils.getResponseFromHttpUrl(url);
+                searchResult = NetworkUtils.getResponseFromHttpUrl(getBaseContext(), url);
             } catch (IOException e) {
                 e.printStackTrace();
             }

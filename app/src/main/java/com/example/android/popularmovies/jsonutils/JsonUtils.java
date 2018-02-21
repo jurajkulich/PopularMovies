@@ -2,6 +2,7 @@ package com.example.android.popularmovies.jsonutils;
 
 import com.example.android.popularmovies.model.Movie;
 import com.example.android.popularmovies.model.Review;
+import com.example.android.popularmovies.model.Video;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,6 +27,10 @@ public class JsonUtils {
 
     private static final String AUTHOR = "author";
     private static final String CONTENT = "content";
+
+    private static final String VIDEO_NAME = "name";
+    private static final String VIDEO_KEY = "key";
+    private static final String VIDEO_TYPE = "type";
 
     private static final String POSTER_URL = "http://image.tmdb.org/t/p/";
 
@@ -116,5 +121,35 @@ public class JsonUtils {
             e.printStackTrace();
         }
         return reviewDetails;
+    }
+
+    public List<Video> parseVideo(String json) {
+        List<Video> videoDetails = new ArrayList<>();
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONArray videos = jsonObject.getJSONArray(RESULTS_PATH);
+            for (int i = 0; i < videos.length(); i++) {
+                JSONObject video  = videos.getJSONObject(i);
+                String name = "Not Available";
+                if( video.has(VIDEO_NAME))
+                {
+                    name = video.optString(VIDEO_NAME);
+                }
+                String key = "Not Available";
+                if( video.has(VIDEO_KEY))
+                {
+                    key  = video.optString(VIDEO_KEY);
+                }
+                String type = "Not Available";
+                if( video.has(VIDEO_TYPE))
+                {
+                    type = video.optString(VIDEO_TYPE);
+                }
+                videoDetails.add(new Video(name, key, type));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return videoDetails;
     }
 }

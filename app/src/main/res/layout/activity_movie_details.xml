@@ -11,6 +11,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <LinearLayout
             android:id="@+id/poster_viewholder"
             android:layout_width="match_parent"
@@ -62,12 +63,20 @@
             android:textAlignment="center"/>
 
 
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/movie_videos_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/movie_description"
+            android:layout_margin="15dp"
+            />
+
         <TextView
             android:id="@+id/relase_date_view_holder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/relase_date_placeholder"
-            android:layout_below="@id/movie_description"
+            android:layout_below="@id/movie_videos_recycler_view"
             android:textStyle="bold"
             android:layout_centerHorizontal="true"/>
 
@@ -83,7 +92,21 @@
             android:id="@+id/movie_rating_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/movie_relase_date "/>
+            android:layout_below="@id/movie_relase_date"/>
+
+        <ImageView
+            android:id="@+id/favorite_image_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/colorAccent"/>
+
+        <ProgressBar
+            android:id="@+id/details_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            />
 
     </RelativeLayout>
 </ScrollView>

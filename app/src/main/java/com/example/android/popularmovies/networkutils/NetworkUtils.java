@@ -1,10 +1,15 @@
 package com.example.android.popularmovies.networkutils;
 
+import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
+
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -24,6 +29,7 @@ public class NetworkUtils {
     private static final String TOP_RATED_URL = "top_rated";
     private static final String POPURAL_URL = "popular";
     private static final String REVIEWS = "reviews";
+    private static final String VIDEOS = "videos";
 
     public URL getTopRatedUrl() {
         URL url = null;
@@ -77,14 +83,37 @@ public class NetworkUtils {
         return url;
     }
 
-    public static String getResponseFromHttpUrl(URL url) throws IOException {
-        if( url != null) {
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder().url(url).build();
-            Response response = client.newCall(request).execute();
-            if( response.body() != null)
-                return response.body().string();
+    public static URL getVideosUrl(String id) {
+        URL url = null;
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme(SCHEME)
+                .authority(BASIC_URL)
+                .appendPath(PATH)
+                .appendPath(MOVIE_PATH)
+                .appendPath(id)
+                .appendPath(VIDEOS)
+                .appendQueryParameter(PARAM_KEY_URL, KEY);
+        try {
+            url = new URL(builder.build().toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
-        return "";
+        return url;
+    }
+
+    public static String getResponseFromHttpUrl(Context context, URL url) throws IOException {
+        if( url == null) {
+            return "";
+        }
+
+        final File cacheFile = new File(context.getCacheDir(), "MoviePostersCache");
+        int cacheSize = 10*1024*1024;
+        Cache cache = new Cache(cacheFile, cacheSize);
+        OkHttpClient client = new OkHttpClient.Builder().cache(cache).build();
+
+        Request request = new Request.Builder().url(url).build();
+        Response response = client.newCall(request).execute();
+            //if( response.body() != null)
+        return response.body().string();
     }
 }
