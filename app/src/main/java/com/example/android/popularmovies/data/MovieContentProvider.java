@@ -10,10 +10,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by Juraj on 2/21/2018.
  */
+
+// Here I used Udacity Lesson on ContentProvider
 
 public class MovieContentProvider extends ContentProvider {
 
@@ -51,7 +54,7 @@ public class MovieContentProvider extends ContentProvider {
             }
             case MOVIE_WITH_ID: {
                 String id = uri.getPathSegments().get(1);
-                String mSelection = "_id";
+                String mSelection = MovieContract.MovieEntry.COLUMN_VIDEO_ID;
                 String [] mSelectionArgs = { id } ;
                 returnCursor = sqLiteDatabase.query(MovieContract.MovieEntry.TABLE_NAME, projection,mSelection, mSelectionArgs, null, null, sortOrder );
             }
@@ -103,6 +106,7 @@ public class MovieContentProvider extends ContentProvider {
         switch (match) {
             case MOVIES: {
                 deleted = sqLiteDatabase.delete(MovieContract.MovieEntry.TABLE_NAME, null, null);
+                Log.e("MovieContentProvider", "MOVIES");
                 break;
             }
             case MOVIE_WITH_ID: {

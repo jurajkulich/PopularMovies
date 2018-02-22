@@ -101,19 +101,14 @@ public class NetworkUtils {
         return url;
     }
 
-    public static String getResponseFromHttpUrl(Context context, URL url) throws IOException {
-        if( url == null) {
-            return "";
+    public static String getResponseFromHttpUrl(URL url) throws IOException {
+        if( url != null) {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(url).build();
+            Response response = client.newCall(request).execute();
+            if( response.body() != null)
+                return response.body().string();
         }
-
-        final File cacheFile = new File(context.getCacheDir(), "MoviePostersCache");
-        int cacheSize = 10*1024*1024;
-        Cache cache = new Cache(cacheFile, cacheSize);
-        OkHttpClient client = new OkHttpClient.Builder().cache(cache).build();
-
-        Request request = new Request.Builder().url(url).build();
-        Response response = client.newCall(request).execute();
-            //if( response.body() != null)
-        return response.body().string();
+        return "";
     }
 }

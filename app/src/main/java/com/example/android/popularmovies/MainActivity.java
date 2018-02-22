@@ -1,17 +1,20 @@
 package com.example.android.popularmovies;
 
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 
+import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.networkutils.NetworkUtils;
 import com.example.android.popularmovies.jsonutils.JsonUtils;
 import com.example.android.popularmovies.model.Movie;
@@ -33,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,12 +51,15 @@ public class MainActivity extends AppCompatActivity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                switch(i) {
+                switch (i) {
                     case 0:
                         new QueryMoviesTask().execute(networkUtils.getTopRatedUrl());
                         break;
                     case 1:
                         new QueryMoviesTask().execute(networkUtils.getPopularUrl());
+                        break;
+                    case 2:
+                        new QueryMoviesTask().execute();
                         break;
                     default:
                         new QueryMoviesTask().execute(networkUtils.getTopRatedUrl());
@@ -81,22 +86,34 @@ public class MainActivity extends AppCompatActivity {
         moviePostersRecyclerView.setAdapter(moviePostersAdapter);
         moviePostersRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        new QueryMoviesTask().execute(networkUtils.getTopRatedUrl() );
+        new QueryMoviesTask().execute(networkUtils.getTopRatedUrl());
 
     }
 
-    public class QueryMoviesTask extends AsyncTask<URL, Void, String> {
+    public class QueryMoviesTask extends AsyncTask<URL, Void, List<Movie>> {
 
         @Override
-        protected String doInBackground(URL... urls) {
+        protected List<Movie> doInBackground(URL... urls) {
+
+            if (urls.length == 0) {
+                Cursor cursor = getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
+                Log.e("cicka", "Taham z cursora");
+                return cursorToMovies(cursor);
+            }
             URL url = urls[0];
             String searchResult = null;
             try {
-                searchResult = NetworkUtils.getResponseFromHttpUrl(getBaseContext(), url);
+                searchResult = NetworkUtils.getResponseFromHttpUrl(url);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return searchResult;
+            Log.e("cicka", "Taham z api");
+            if( searchResult != null) {
+                return jsonUtils.parseMovie(searchResult);
+            } else {
+                return new ArrayList<Movie>();
+            }
+
         }
 
         @Override
@@ -106,12 +123,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            if( s != null ) {
-                mMovieList = jsonUtils.parseMovie(s);
-            }
+        protected void onPostExecute(List<Movie> movies) {
             mProgressBar.setVisibility(View.GONE);
-            moviePostersAdapter.setItems(mMovieList);
+            moviePostersAdapter.setItems(movies);
             moviePostersAdapter.notifyDataSetChanged();
         }
     }
@@ -120,15 +134,36 @@ public class MainActivity extends AppCompatActivity {
     private int getDisplaySize() {
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         int density = displayMetrics.densityDpi;
-        if( density <= 320) {
+        if (density <= 320) {
             return 1;
-        } else if( density <= 480) {
+        } else if (density <= 480) {
             return 2;
         } else {
             return 3;
         }
     }
 
-
+    private List<Movie> cursorToMovies(Cursor cursor) {
+        List<Movie> cursorMovies = new ArrayList<>();
+        try {
+            while (cursor.moveToNext()) {
+                int idIndex = cursor.getColumnIndexOrThrow("videoId");
+                int titleIndex = cursor.getColumnIndexOrThrow("videoTitle");
+                int descIndex = cursor.getColumnIndexOrThrow("videoOverview");
+                int posterIndex = cursor.getColumnIndexOrThrow("videoPoster");
+                int ratingIndex = cursor.getColumnIndexOrThrow("videoRating");
+                int relaseIndex = cursor.getColumnIndexOrThrow("videoRelaseDate");
+                Log.e("CursorToMovies", cursor.toString());
+                cursorMovies.add(new Movie(cursor.getString(idIndex), cursor.getString(titleIndex),
+                        cursor.getString(posterIndex), cursor.getString(descIndex), cursor.getString(ratingIndex)
+                        , cursor.getString(relaseIndex)));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+        return cursorMovies;
+    }
 
 }

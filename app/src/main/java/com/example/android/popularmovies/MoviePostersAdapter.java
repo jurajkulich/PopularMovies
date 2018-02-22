@@ -9,10 +9,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.android.popularmovies.model.Movie;
+import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.List;
+
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
+
 
 /**
  * Created by Juraj on 2/17/2018.
@@ -64,7 +73,7 @@ public class MoviePostersAdapter extends RecyclerView.Adapter<MoviePostersAdapte
     @Override
     public void onBindViewHolder(MoviePostersAdapter.ViewHolder holder, int position) {
         String url = movies.get(position).getImage();
-        Picasso.with(context).load(url).into( holder.mImageView);
+        Glide.with(context).load(url).into(holder.mImageView);
     }
 
     @Override

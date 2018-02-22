@@ -1,13 +1,16 @@
 package com.example.android.popularmovies;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -15,6 +18,9 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.annotation.GlideModule;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.MovieDbHelper;
 import com.example.android.popularmovies.jsonutils.JsonUtils;
@@ -22,15 +28,25 @@ import com.example.android.popularmovies.model.Movie;
 import com.example.android.popularmovies.model.Review;
 import com.example.android.popularmovies.model.Video;
 import com.example.android.popularmovies.networkutils.NetworkUtils;
+import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
+
+
+
+
 public class MovieDetailsActivity extends AppCompatActivity {
+
+
 
     private TextView title;
     private TextView description;
@@ -45,6 +61,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private RecyclerView mMovieRatingsRecyclerView;
     private MovieReviewsAdapter mMovieReviewsAdapter;
+    private LinearLayoutManager mLinearLayoutManager;
 
     private RecyclerView mMovieVideosRecyclerView;
     private MovieVideosAdapter mMovieVideosAdapter;
@@ -58,10 +75,22 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private SQLiteDatabase mSQLiteDatabase;
     private MovieDbHelper mMovieDbHelper;
 
+    Parcelable p;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
+
+        mMovieRatingsRecyclerView = findViewById(R.id.movie_rating_recycler_view);
+        mMovieRatingsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        if(savedInstanceState != null) {
+            if( savedInstanceState.containsKey("review")) {
+                mMovieRatingsRecyclerView.getLayoutManager().onRestoreInstanceState(savedInstanceState.getParcelable("review"));
+                Log.e("MovieDetailsActivity", "containsKey");
+            }
+        }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -75,10 +104,10 @@ public class MovieDetailsActivity extends AppCompatActivity {
         favoriteStar = findViewById(R.id.favorite_image_view);
 
         mReviewList = new ArrayList<>();
-        mMovieRatingsRecyclerView = findViewById(R.id.movie_rating_recycler_view);
+
         mMovieReviewsAdapter = new MovieReviewsAdapter(this, mReviewList);
         mMovieRatingsRecyclerView.setAdapter(mMovieReviewsAdapter);
-        mMovieRatingsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
 
         mVideosList = new ArrayList<>();
         mMovieVideosRecyclerView = findViewById(R.id.movie_videos_recycler_view);
@@ -130,6 +159,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         new QueryMovieReview().execute(NetworkUtils.getRatingsUrl(movie.getId()), NetworkUtils.getVideosUrl(movie.getId()));
     }
 
+
     private void setUI(Movie movieDetail) {
         title.setText(movieDetail.getTitle());
         description.setText(movieDetail.getSynopsis());
@@ -140,7 +170,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void addMovieToDb() {
-        mSQLiteDatabase = mMovieDbHelper.getWritableDatabase();
+
         ContentValues contentValues = new ContentValues();
         contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_ID, movie.getId());
         contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_TITLE, movie.getTitle());
@@ -148,14 +178,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
         contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_POSTER, movie.getImage());
         contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_RATING, movie.getRating());
         contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_RELASE_DATE, movie.getRelase_date());
-        if (mSQLiteDatabase.insert(MovieContract.MovieEntry.TABLE_NAME, null, contentValues) == -1) {
-            Toast.makeText(this, "Couldn't add to favorites", Toast.LENGTH_SHORT).show();
-        }
+
+        getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, contentValues);
+        Toast.makeText(this, "Added to favorites", Toast.LENGTH_SHORT).show();
+
     }
 
     private void deleteMovieFromDb() {
-        mSQLiteDatabase = mMovieDbHelper.getWritableDatabase();
-        if( mSQLiteDatabase.delete(MovieContract.MovieEntry.TABLE_NAME, MovieContract.MovieEntry.COLUMN_VIDEO_ID + " = ?",
+        if(getContentResolver().delete(ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI,Long.parseLong(movie.getId())), MovieContract.MovieEntry.COLUMN_VIDEO_ID + " = ?",
                 new String[] { movie.getId()}) != 0) {
             Toast.makeText(this, "Deleted from favorites", Toast.LENGTH_SHORT).show();
         }
@@ -194,8 +224,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
             String reviewResult = null;
             String videoResults = null;
             try {
-                reviewResult = NetworkUtils.getResponseFromHttpUrl(getBaseContext(),reviewsUrl);
-                videoResults = NetworkUtils.getResponseFromHttpUrl(getBaseContext(),videosUrl);
+                reviewResult = NetworkUtils.getResponseFromHttpUrl(reviewsUrl);
+                videoResults = NetworkUtils.getResponseFromHttpUrl(videosUrl);
             } catch (IOException e) {
                 e.printStackTrace();
             }
