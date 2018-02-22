@@ -19,7 +19,7 @@ public class MovieReviewsAdapter extends RecyclerView.Adapter<MovieReviewsAdapte
 
     private List<Review> mReviews;
 
-    public MovieReviewsAdapter(Context context, List<Review> list) {
+    public MovieReviewsAdapter(List<Review> list) {
         mReviews = list;
     }
 

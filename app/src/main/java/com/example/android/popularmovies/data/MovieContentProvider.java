@@ -3,7 +3,6 @@ package com.example.android.popularmovies.data;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,7 +16,6 @@ import android.util.Log;
  */
 
 // Here I used Udacity Lesson on ContentProvider
-
 public class MovieContentProvider extends ContentProvider {
 
     public static final int MOVIES = 100;
@@ -57,6 +55,7 @@ public class MovieContentProvider extends ContentProvider {
                 String mSelection = MovieContract.MovieEntry.COLUMN_VIDEO_ID;
                 String [] mSelectionArgs = { id } ;
                 returnCursor = sqLiteDatabase.query(MovieContract.MovieEntry.TABLE_NAME, projection,mSelection, mSelectionArgs, null, null, sortOrder );
+                break;
             }
             default: {
                 throw new UnsupportedOperationException("Unknown URI: " + uri);
@@ -111,8 +110,10 @@ public class MovieContentProvider extends ContentProvider {
             }
             case MOVIE_WITH_ID: {
                 String id = uri.getPathSegments().get(1);
+                String mSelection = MovieContract.MovieEntry.COLUMN_VIDEO_ID;
                 String [] mSelectionArgs = { id } ;
-                deleted = sqLiteDatabase.delete(MovieContract.MovieEntry.TABLE_NAME, "_id = ?", mSelectionArgs);
+                deleted = sqLiteDatabase.delete(MovieContract.MovieEntry.TABLE_NAME, mSelection + "=?", mSelectionArgs);
+                break;
             }
             default: {
                 throw new UnsupportedOperationException("Unknown URI: " + uri);

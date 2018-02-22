@@ -10,17 +10,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.android.popularmovies.model.Movie;
-import com.jakewharton.picasso.OkHttp3Downloader;
-import com.squareup.picasso.OkHttpDownloader;
-import com.squareup.picasso.Picasso;
 
-import java.io.File;
 import java.util.List;
-
-import okhttp3.Cache;
-import okhttp3.OkHttpClient;
 
 
 /**

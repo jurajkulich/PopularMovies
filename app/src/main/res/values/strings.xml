@@ -11,4 +11,6 @@
     <string name="relase_date_placeholder">Relase date</string>
     <string name="videos_viewholder">Videos</string>
     <string name="reviews_placeholder">Reviews</string>
+    <string name="author_placeholder">Author</string>
+    <string name="item_favorite_placeholder">Favorite</string>
 </resources>

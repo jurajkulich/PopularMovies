@@ -1,16 +1,17 @@
 package com.example.android.popularmovies;
 
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.os.Parcelable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -18,35 +19,20 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.annotation.GlideModule;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.android.popularmovies.data.MovieContract;
-import com.example.android.popularmovies.data.MovieDbHelper;
 import com.example.android.popularmovies.jsonutils.JsonUtils;
 import com.example.android.popularmovies.model.Movie;
 import com.example.android.popularmovies.model.Review;
 import com.example.android.popularmovies.model.Video;
 import com.example.android.popularmovies.networkutils.NetworkUtils;
-import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import okhttp3.Cache;
-import okhttp3.OkHttpClient;
-
-
-
 
 public class MovieDetailsActivity extends AppCompatActivity {
-
-
 
     private TextView title;
     private TextView description;
@@ -55,13 +41,12 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private ImageView poster;
 
     private RatingBar mRatingBar;
-    private ImageView favoriteStar;
+    private Menu favoriteStar;
 
     private ProgressBar mProgressBar;
 
     private RecyclerView mMovieRatingsRecyclerView;
     private MovieReviewsAdapter mMovieReviewsAdapter;
-    private LinearLayoutManager mLinearLayoutManager;
 
     private RecyclerView mMovieVideosRecyclerView;
     private MovieVideosAdapter mMovieVideosAdapter;
@@ -72,25 +57,11 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private JsonUtils mJsonUtils;
 
-    private SQLiteDatabase mSQLiteDatabase;
-    private MovieDbHelper mMovieDbHelper;
-
-    Parcelable p;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
-
-        mMovieRatingsRecyclerView = findViewById(R.id.movie_rating_recycler_view);
-        mMovieRatingsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        if(savedInstanceState != null) {
-            if( savedInstanceState.containsKey("review")) {
-                mMovieRatingsRecyclerView.getLayoutManager().onRestoreInstanceState(savedInstanceState.getParcelable("review"));
-                Log.e("MovieDetailsActivity", "containsKey");
-            }
-        }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -101,11 +72,11 @@ public class MovieDetailsActivity extends AppCompatActivity {
         poster = findViewById(R.id.movie_poster);
 
         mProgressBar = findViewById(R.id.details_progress_bar);
-        favoriteStar = findViewById(R.id.favorite_image_view);
 
         mReviewList = new ArrayList<>();
-
-        mMovieReviewsAdapter = new MovieReviewsAdapter(this, mReviewList);
+        mMovieRatingsRecyclerView = findViewById(R.id.movie_rating_recycler_view);
+        mMovieRatingsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mMovieReviewsAdapter = new MovieReviewsAdapter(mReviewList);
         mMovieRatingsRecyclerView.setAdapter(mMovieReviewsAdapter);
 
 
@@ -121,9 +92,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         mJsonUtils = new JsonUtils();
 
-        mMovieDbHelper = new MovieDbHelper(this);
-        mSQLiteDatabase = mMovieDbHelper.getReadableDatabase();
-        // mSQLiteDatabase.delete(MovieContract.MovieEntry.TABLE_NAME, null, null);
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             String id = bundle.getString("id");
@@ -135,27 +103,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
             movie = new Movie(id, title, poster, desc, rating, relase);
         }
         setUI(movie);
-
-
-        if (checkIfDbContain()) {
-            favoriteStar.setImageResource(R.drawable.ic_star_full);
-        } else {
-            favoriteStar.setImageResource(R.drawable.ic_star_border);
-        }
-
-        favoriteStar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(!checkIfDbContain()) {
-                    addMovieToDb();
-                    favoriteStar.setImageResource(R.drawable.ic_star_full);
-                } else {
-                    deleteMovieFromDb();
-                    favoriteStar.setImageResource(R.drawable.ic_star_border);
-                }
-            }
-        });
-
         new QueryMovieReview().execute(NetworkUtils.getRatingsUrl(movie.getId()), NetworkUtils.getVideosUrl(movie.getId()));
     }
 
@@ -185,27 +132,22 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void deleteMovieFromDb() {
-        if(getContentResolver().delete(ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI,Long.parseLong(movie.getId())), MovieContract.MovieEntry.COLUMN_VIDEO_ID + " = ?",
-                new String[] { movie.getId()}) != 0) {
+        if (getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(movie.getId()).build(), MovieContract.MovieEntry.COLUMN_VIDEO_ID + " = ?",
+                new String[]{movie.getId()}) != 0) {
             Toast.makeText(this, "Deleted from favorites", Toast.LENGTH_SHORT).show();
         }
     }
 
 
     private boolean checkIfDbContain() {
-        Cursor cursor = mSQLiteDatabase.query(MovieContract.MovieEntry.TABLE_NAME, new String[]{MovieContract.MovieEntry.COLUMN_VIDEO_TITLE},
-                MovieContract.MovieEntry.COLUMN_VIDEO_ID + " = ?", new String[]{movie.getId()}, null, null, null, null);
+        Cursor cursor = getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, MovieContract.MovieEntry.COLUMN_VIDEO_ID + " = ?", new String[]{movie.getId()}, null, null);
         if (cursor.moveToFirst()) {
+            cursor.close();
             return true;
         } else {
+            cursor.close();
             return false;
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        mSQLiteDatabase.close();
-        super.onDestroy();
     }
 
     public class QueryMovieReview extends AsyncTask<URL, Void, String[]> {
@@ -250,5 +192,37 @@ public class MovieDetailsActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.movie_detail_toolbar_menu, menu);
+        favoriteStar = menu;
+        MenuItem menuItem = menu.findItem(R.id.movie_detail_menu_favorite);
+        if (checkIfDbContain()) {
+            menuItem.setIcon(R.drawable.ic_star_full);
+        } else {
+            menuItem.setIcon(R.drawable.ic_star_border);
+        }
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.movie_detail_menu_favorite: {
+                if (!checkIfDbContain()) {
+                    addMovieToDb();
+                    favoriteStar.getItem(0).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_star_full));
+                } else {
+                    deleteMovieFromDb();
+                    favoriteStar.getItem(0).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_star_border));
+                }
+                break;
+            }
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
+        }
+        return true;
+    }
 }

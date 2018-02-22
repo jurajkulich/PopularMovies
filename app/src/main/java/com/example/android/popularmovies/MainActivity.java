@@ -2,8 +2,8 @@ package com.example.android.popularmovies;
 
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -15,9 +15,9 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import com.example.android.popularmovies.data.MovieContract;
-import com.example.android.popularmovies.networkutils.NetworkUtils;
 import com.example.android.popularmovies.jsonutils.JsonUtils;
 import com.example.android.popularmovies.model.Movie;
+import com.example.android.popularmovies.networkutils.NetworkUtils;
 
 import java.io.IOException;
 import java.net.URL;
@@ -97,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
 
             if (urls.length == 0) {
                 Cursor cursor = getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
-                Log.e("cicka", "Taham z cursora");
                 return cursorToMovies(cursor);
             }
             URL url = urls[0];
@@ -107,11 +106,10 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Log.e("cicka", "Taham z api");
             if( searchResult != null) {
                 return jsonUtils.parseMovie(searchResult);
             } else {
-                return new ArrayList<Movie>();
+                return new ArrayList<>();
             }
 
         }
@@ -165,5 +163,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return cursorMovies;
     }
-
 }

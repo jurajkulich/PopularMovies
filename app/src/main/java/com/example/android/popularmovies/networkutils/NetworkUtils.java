@@ -1,15 +1,11 @@
 package com.example.android.popularmovies.networkutils;
 
-import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
