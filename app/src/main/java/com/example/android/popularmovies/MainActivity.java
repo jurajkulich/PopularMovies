@@ -3,8 +3,10 @@ package com.example.android.popularmovies;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -13,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.jsonutils.JsonUtils;
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private MoviePostersAdapter moviePostersAdapter;
     private ProgressBar mProgressBar;
 
+    private int onSaveRecycler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.movies_progress_bar);
         moviePostersRecyclerView = findViewById(R.id.movie_recycler_view);
 
-        networkUtils = new NetworkUtils();
+        networkUtils = new NetworkUtils(this);
         // initialize jsonUtils with display_size - we download bigger posters for bigger screens
         jsonUtils = new JsonUtils(display_size);
 
@@ -89,6 +93,21 @@ public class MainActivity extends AppCompatActivity {
         new QueryMoviesTask().execute(networkUtils.getTopRatedUrl());
 
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        onSaveRecycler = ((LinearLayoutManager) moviePostersRecyclerView.getLayoutManager()).findLastVisibleItemPosition();
+        outState.putInt("KEY", onSaveRecycler);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        onSaveRecycler = savedInstanceState.getInt("KEY");
+    }
+
+
 
     public class QueryMoviesTask extends AsyncTask<URL, Void, List<Movie>> {
 
@@ -122,9 +141,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(List<Movie> movies) {
+            super.onPostExecute(movies);
             mProgressBar.setVisibility(View.GONE);
             moviePostersAdapter.setItems(movies);
             moviePostersAdapter.notifyDataSetChanged();
+            moviePostersRecyclerView.getLayoutManager().scrollToPosition(onSaveRecycler);
+            // onSaveRecycler = 0;
         }
     }
 

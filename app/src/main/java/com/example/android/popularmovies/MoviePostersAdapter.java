@@ -65,7 +65,7 @@ public class MoviePostersAdapter extends RecyclerView.Adapter<MoviePostersAdapte
     @Override
     public void onBindViewHolder(MoviePostersAdapter.ViewHolder holder, int position) {
         String url = movies.get(position).getImage();
-        Glide.with(context).load(url).into(holder.mImageView);
+        GlideApp.with(context).load(url).placeholder(R.drawable.poster_placeholder).into(holder.mImageView);
     }
 
     @Override

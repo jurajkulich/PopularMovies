@@ -1,6 +1,9 @@
 package com.example.android.popularmovies.networkutils;
 
+import android.content.Context;
 import android.net.Uri;
+
+import com.example.android.popularmovies.R;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -16,7 +19,7 @@ import okhttp3.Response;
 
 public class NetworkUtils {
 
-    private static final String KEY = "";
+    private static String KEY;
     private static final String SCHEME = "https";
     private static final String BASIC_URL = "api.themoviedb.org";
     private static final String PATH = "3";
@@ -27,6 +30,9 @@ public class NetworkUtils {
     private static final String REVIEWS = "reviews";
     private static final String VIDEOS = "videos";
 
+    public NetworkUtils(Context context) {
+        KEY = context.getString(R.string.MOVIE_DB_API);
+    }
     public URL getTopRatedUrl() {
         URL url = null;
         Uri.Builder builder = new Uri.Builder();

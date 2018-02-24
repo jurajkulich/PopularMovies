@@ -34,7 +34,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.TABLE_NAME);
-        onCreate(sqLiteDatabase);
+        // sqLiteDatabase.execSQL("ALTER TABLE " +  MovieContract.MovieEntry.TABLE_NAME + " IF EXISTS " );
+        // onCreate(sqLiteDatabase);
     }
 }
