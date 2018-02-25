@@ -3,7 +3,6 @@ package com.example.android.popularmovies;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,7 +14,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.jsonutils.JsonUtils;
@@ -39,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
 
     private int onSaveRecycler;
+    private static final String RECYCLERVIEW_KEY = "RECYCLERVIEW_KEY";
+    private float offset;
+    private static final String OFFSET_KEY = "OFFSET_KEY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,13 +99,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         onSaveRecycler = ((LinearLayoutManager) moviePostersRecyclerView.getLayoutManager()).findLastVisibleItemPosition();
-        outState.putInt("KEY", onSaveRecycler);
+        outState.putInt(RECYCLERVIEW_KEY, onSaveRecycler);
+        View firstItemView = moviePostersRecyclerView.getLayoutManager().findViewByPosition(onSaveRecycler);
+        offset = firstItemView.getTop();
+        outState.putFloat(OFFSET_KEY, offset);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        onSaveRecycler = savedInstanceState.getInt("KEY");
+        onSaveRecycler = savedInstanceState.getInt(RECYCLERVIEW_KEY);
+        offset = savedInstanceState.getFloat(OFFSET_KEY);
     }
 
 
@@ -145,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
             mProgressBar.setVisibility(View.GONE);
             moviePostersAdapter.setItems(movies);
             moviePostersAdapter.notifyDataSetChanged();
-            moviePostersRecyclerView.getLayoutManager().scrollToPosition(onSaveRecycler);
+            ((GridLayoutManager) moviePostersRecyclerView.getLayoutManager()).scrollToPositionWithOffset(onSaveRecycler, (int)offset);
             // onSaveRecycler = 0;
         }
     }

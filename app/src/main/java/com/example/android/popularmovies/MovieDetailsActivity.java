@@ -4,12 +4,10 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -50,7 +48,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private MovieReviewsAdapter mMovieReviewsAdapter;
 
     private RecyclerView mMovieVideosRecyclerView;
-    private LinearLayoutManager mLinearLayoutManager;
     private MovieVideosAdapter mMovieVideosAdapter;
 
     private Movie movie;
@@ -59,9 +56,10 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private JsonUtils mJsonUtils;
 
-    private int onSaveRecyclerVideo;
     private float offset;
+    private static final String OFFSET_KEY = "OFFSET_KEY";
     private int onSaveRecyclerReview;
+    private static final String RECYCLERVIEW_KEY = "RECYCLERVIEW_KEY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +78,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         mReviewList = new ArrayList<>();
         mMovieRatingsRecyclerView = findViewById(R.id.movie_rating_recycler_view);
-        mMovieRatingsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mMovieRatingsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mMovieReviewsAdapter = new MovieReviewsAdapter(mReviewList);
         mMovieRatingsRecyclerView.setAdapter(mMovieReviewsAdapter);
 
@@ -113,22 +111,23 @@ public class MovieDetailsActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        // onSaveRecyclerVideo = ((LinearLayoutManager) mMovieVideosRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-        onSaveRecyclerReview = ((LinearLayoutManager) mMovieRatingsRecyclerView.getLayoutManager()).findLastVisibleItemPosition();
-        Toast.makeText(this, "" + onSaveRecyclerReview, Toast.LENGTH_SHORT).show();
-        outState.putInt("VIDEO", onSaveRecyclerVideo);
+        onSaveRecyclerReview = ((LinearLayoutManager) mMovieRatingsRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
         View firstItemView = mMovieRatingsRecyclerView.getLayoutManager().findViewByPosition(onSaveRecyclerReview);
-        offset = firstItemView.getTop();
-        outState.putFloat("offset", offset);
-        outState.putInt("REVIEW", onSaveRecyclerReview);
+        if (firstItemView != null) {
+            offset = firstItemView.getTop();
+        } else {
+            offset = 0;
+        }
+
+        outState.putFloat(OFFSET_KEY, offset);
+        outState.putInt(RECYCLERVIEW_KEY, onSaveRecyclerReview);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        // onSaveRecyclerVideo = savedInstanceState.getInt("VIDEO");
-        onSaveRecyclerReview = savedInstanceState.getInt("REVIEW");
-        offset = savedInstanceState.getFloat("offset");
+        onSaveRecyclerReview = savedInstanceState.getInt(RECYCLERVIEW_KEY);
+        offset = savedInstanceState.getFloat(OFFSET_KEY);
     }
 
     private void setUI(Movie movieDetail) {
@@ -213,7 +212,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
             mMovieReviewsAdapter.notifyDataSetChanged();
             mMovieVideosAdapter.setVideoList(mVideosList);
             mMovieVideosAdapter.notifyDataSetChanged();
-            mMovieRatingsRecyclerView.getLayoutManager().scrollToPosition(onSaveRecyclerReview);
+            ((LinearLayoutManager) mMovieRatingsRecyclerView.getLayoutManager()).scrollToPositionWithOffset(onSaveRecyclerReview, (int) offset);
         }
     }
 
