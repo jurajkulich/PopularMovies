@@ -3,7 +3,6 @@ package com.example.android.popularmovies;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,7 +14,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.jsonutils.JsonUtils;
@@ -39,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
 
     private int onSaveRecycler;
+    private static final String ON_SAVE_RECYCLER_KEY = "ON_SAVE_RECYCLER_KEY";
+    private int offset;
+    private static final String OFFSET = "OFFSET";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,16 +98,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        onSaveRecycler = ((LinearLayoutManager) moviePostersRecyclerView.getLayoutManager()).findLastVisibleItemPosition();
-        outState.putInt("KEY", onSaveRecycler);
+        onSaveRecycler = ((LinearLayoutManager) moviePostersRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+        View view = moviePostersRecyclerView.getChildAt(onSaveRecycler);
+        if (view != null)
+            offset = view.getTop();
+        else
+            offset = 0;
+        outState.putInt(ON_SAVE_RECYCLER_KEY, onSaveRecycler);
+        outState.putInt(OFFSET, offset);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        onSaveRecycler = savedInstanceState.getInt("KEY");
+        onSaveRecycler = savedInstanceState.getInt(ON_SAVE_RECYCLER_KEY);
+        offset = savedInstanceState.getInt(OFFSET);
     }
-
 
 
     public class QueryMoviesTask extends AsyncTask<URL, Void, List<Movie>> {
@@ -125,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if( searchResult != null) {
+            if (searchResult != null) {
                 return jsonUtils.parseMovie(searchResult);
             } else {
                 return new ArrayList<>();
@@ -145,8 +152,7 @@ public class MainActivity extends AppCompatActivity {
             mProgressBar.setVisibility(View.GONE);
             moviePostersAdapter.setItems(movies);
             moviePostersAdapter.notifyDataSetChanged();
-            moviePostersRecyclerView.getLayoutManager().scrollToPosition(onSaveRecycler);
-            // onSaveRecycler = 0;
+            ((LinearLayoutManager) moviePostersRecyclerView.getLayoutManager()).scrollToPositionWithOffset(onSaveRecycler, offset);
         }
     }
 

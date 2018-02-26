@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.example.android.popularmovies.model.Movie;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class MoviePostersAdapter extends RecyclerView.Adapter<MoviePostersAdapte
     private Context context;
     private List<Movie> movies;
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public ImageView mImageView;
 
         public ViewHolder(View view) {
@@ -41,8 +40,8 @@ public class MoviePostersAdapter extends RecyclerView.Adapter<MoviePostersAdapte
             Intent intent = new Intent(view.getContext(), MovieDetailsActivity.class);
             Bundle bundle = new Bundle();
             bundle.putString("id", movie.getId());
-            bundle.putString("title",movie.getTitle());
-            bundle.putString("description",movie.getSynopsis());
+            bundle.putString("title", movie.getTitle());
+            bundle.putString("description", movie.getSynopsis());
             bundle.putString("poster", movie.getImage());
             bundle.putString("rating", movie.getRating());
             bundle.putString("relase", movie.getRelase_date());

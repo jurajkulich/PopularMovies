@@ -4,12 +4,10 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -17,6 +15,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +34,8 @@ import java.util.List;
 
 public class MovieDetailsActivity extends AppCompatActivity {
 
+    private ScrollView mNestedScrollView;
+
     private TextView title;
     private TextView description;
     private TextView rating;
@@ -50,7 +51,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private MovieReviewsAdapter mMovieReviewsAdapter;
 
     private RecyclerView mMovieVideosRecyclerView;
-    private LinearLayoutManager mLinearLayoutManager;
     private MovieVideosAdapter mMovieVideosAdapter;
 
     private Movie movie;
@@ -59,9 +59,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private JsonUtils mJsonUtils;
 
-    private int onSaveRecyclerVideo;
-    private float offset;
-    private int onSaveRecyclerReview;
+    private int SCALE_Y;
+    private static final String SCALE_Y_KEY = "SCALE_Y_KEY";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +69,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_movie_details);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        mNestedScrollView = findViewById(R.id.nested);
 
         title = findViewById(R.id.movie_title);
         description = findViewById(R.id.movie_description);
@@ -113,22 +115,16 @@ public class MovieDetailsActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        // onSaveRecyclerVideo = ((LinearLayoutManager) mMovieVideosRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-        onSaveRecyclerReview = ((LinearLayoutManager) mMovieRatingsRecyclerView.getLayoutManager()).findLastVisibleItemPosition();
-        Toast.makeText(this, "" + onSaveRecyclerReview, Toast.LENGTH_SHORT).show();
-        outState.putInt("VIDEO", onSaveRecyclerVideo);
-        View firstItemView = mMovieRatingsRecyclerView.getLayoutManager().findViewByPosition(onSaveRecyclerReview);
-        offset = firstItemView.getTop();
-        outState.putFloat("offset", offset);
-        outState.putInt("REVIEW", onSaveRecyclerReview);
+
+        outState.putFloat(SCALE_Y_KEY, mNestedScrollView.getScrollY());
+
+
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        // onSaveRecyclerVideo = savedInstanceState.getInt("VIDEO");
-        onSaveRecyclerReview = savedInstanceState.getInt("REVIEW");
-        offset = savedInstanceState.getFloat("offset");
+        SCALE_Y = (int) savedInstanceState.getFloat(SCALE_Y_KEY);
     }
 
     private void setUI(Movie movieDetail) {
@@ -213,7 +209,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
             mMovieReviewsAdapter.notifyDataSetChanged();
             mMovieVideosAdapter.setVideoList(mVideosList);
             mMovieVideosAdapter.notifyDataSetChanged();
-            mMovieRatingsRecyclerView.getLayoutManager().scrollToPosition(onSaveRecyclerReview);
+
+            mNestedScrollView.post(new Runnable() {
+                @Override
+                public void run() {
+                    mNestedScrollView.scrollTo(0, SCALE_Y);
+                }
+            });
+
         }
     }
 
